@@ -13,6 +13,8 @@ root.title("GUI Project")
 file_frame = Frame(root)
 file_frame.pack(fill="x")
 
+#command 정리
+
 def add():
     files = filedialog.askopenfilenames(title="이미지 파일을 선택하세요" ,\
     filetypes=(("PNG 파일", "*.PNG") , ("모든 파일" , "*.*")),\
@@ -31,27 +33,24 @@ def browse_dest_path():
     txt_dest_path.insert(0,folder_selected)
 
 def start():
-    print( "가로 넓이 :" , cmb_width.get())
-    print( "간격 :" , cmb_space.get())
-    print( "포맷 :" , cmb_format.get())
-    
+    # 이미지 파일 추가했는지 확인
     if list_file.size() == 0 :
         msgbox.showwarning("경고" , "이미지 파일을 추가하세요.")
         return
+    # 저장 경로 설정 했는지 확인
     if len(txt_dest_path.get()) == 0 :
         msgbox.showwarning("경고" , "저장 경로를 설정하세요")
         return
-    #img_width ->콤보박스에서 얻어온 값 적용
 
+    #콤보 박스 설정값
+
+    # 1. 가로 넓이 설정
     img_width = cmb_width.get()
     if img_width == "원본유지":
         img_width = -1
     else:
         img_width = int(img_width)
-
-
-    # img_space
-
+    # 2. 여백 설정
     img_space = cmb_space.get()
 
     if img_space == "좁게":
@@ -63,25 +62,24 @@ def start():
     else:
         img_space = 0
 
-    #img_format
+    # 3. 형식 설정
     img_format = cmb_format.get().lower()
     
     #########################################
 
-    #img_space format width 연장선
-
+    # 콤보 박스 설정값 ++
 
     images = [Image.open(x) for x in list_file.get(0,END)]
 
+    # 가로 넓이 에 따른 사진 가로 세로 값들 결정
     if img_width > -1:
         sizes = [((int(img_width)) ,int(x.size[1]*img_width /x.size[0])) for x in images ]    
     else:
         sizes = [(x.size[0] , x.size[1]) for x in images]
-    #     photos_width, photos_height = zip(*(x.size for x in images))
+
+    # 가로 넓이 세로 넓이 zip을 통해 저장
 
     photos_width , photos_height =zip(*(sizes))
-    # photos_width = [x.size[0] for x in images]
-    # photos_height = [x.size[1] for x in images]
 
     max_width , total_height = max(photos_width) , sum(photos_height)
 
@@ -92,18 +90,15 @@ def start():
     result_image = Image.new("RGB" , (max_width,total_height) , (255,255,255))
 
     y_offset = 0
-
-
-    # for img in images:
-    #     result_image.paste(img,(0,y_offset))
-    #     y_offset += img.size[1]
     
+    # enumerate를 통한 사진 붙여넣기
+
     for idx , img in enumerate(images):
         if img_width >-1:
             img = img.resize(sizes[idx])
         result_image.paste(img,(0,y_offset))
         y_offset += (img.size[1] +img_space)
-    
+    # progress bar 업데이트
         progress = (idx+1) / len(images) *100
         p_var.set(progress)
         pgbar.update()
@@ -114,10 +109,17 @@ def start():
     result_image.save(dest_path)
     
     msgbox.showinfo("알림" , "작업이 완료되었습니다.")
+
+##################################################################
+
 file_addtionbt = Button(file_frame,text="파일 추가",command=add).pack(side="left")
 file_deletebt = Button(file_frame,text="파일 삭제" , command=delete).pack(side="right")
 
+# 리스트 프레임
+
 list_frame = Frame(root).pack(fill="both" , padx=5 , pady=5)
+
+# 스크롤 바 추가 -> list_frame
 
 scl = Scrollbar(list_frame)
 scl.pack(side="right",fill="y")
@@ -126,6 +128,8 @@ list_file = Listbox(list_frame,selectmode="extended",height=15, yscrollcommand=s
 list_file.pack(fill="both",expand=True)
 
 scl.config(command=list_file.yview)
+
+#저장 경로
 
 path_frame = LabelFrame(root,text="저장경로")
 path_frame.pack(fill="x", padx=5 , pady=5 ,ipady=5)
